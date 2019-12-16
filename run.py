@@ -47,7 +47,7 @@ class RunTask:
                 temperature_path='data/crop_yield-data_temperature',
                 image_path='data/crop_yield-data_image', yield_data_path='data/yield_data.csv',
                 cleaned_data_path='data/img_output', multiprocessing=True, processes=4, parallelism=6,
-                delete_when_done=False, num_years=14):
+                delete_when_done=True, num_years=14):
         """
         Preprocess the data
 
@@ -110,7 +110,7 @@ class RunTask:
         cleaned_data_path = Path(cleaned_data_path)
         yield_data_path = Path(yield_data_path)
         county_data_path = Path(county_data_path)
-
+        print(cleaned_data_path, yield_data_path, county_data_path)
         engineer = Engineer(cleaned_data_path, yield_data_path, county_data_path)
         engineer.process(num_bands=9, generate='histogram', num_bins=num_bins, max_bin_val=max_bin_val,
                          channels_first=True)
