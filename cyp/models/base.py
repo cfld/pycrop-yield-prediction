@@ -410,14 +410,18 @@ class ModelBase:
     def analyze_results(true, pred, pred_gp):
         """Calculate ME and RMSE
         """
-        rmse = np.sqrt(np.mean((true - pred) ** 2))
-        me = np.mean(true - pred)
+        #rmse = np.sqrt(np.mean((true - pred) ** 2))
+        rmse = np.sqrt(np.sum((true - pred) ** 2))/np.sqrt(np.sum((true - np.mean(true))**2))
+        #me = np.mean(true - pred)
+        me = np.mean(np.abs((true-pred)/true))
 
         print(f'Without GP: RMSE: {rmse}, ME: {me}')
 
         if pred_gp is not None:
-            rmse_gp = np.sqrt(np.mean((true - pred_gp) ** 2))
-            me_gp = np.mean(true - pred_gp)
+            #rmse_gp = np.sqrt(np.mean((true - pred_gp) ** 2))
+            rmse_gp = np.sqrt(np.sum((true - pred_gp) ** 2))/ np.sqrt(np.sum((true - np.mean(true))**2))
+            #me_gp = np.mean(true - pred_gp)
+            me_gp = np.mean(np.abs((true-pred_gp)/true))
             print(f'With GP: RMSE: {rmse_gp}, ME: {me_gp}')
             return rmse, me, rmse_gp, me_gp
         return rmse, me
