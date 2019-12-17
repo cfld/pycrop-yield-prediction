@@ -58,7 +58,9 @@ class MODISExporter:
             task_dict.update({
                 'region': region
             })
+        print(task_dict)
         task = ee.batch.Export.image(img, name, task_dict)
+        #task = ee.batch.Export.image.toDrive(img, name, **task_dict)
         task.start()
         while task.status()['state'] == 'RUNNING':
             print('Running...')
@@ -149,7 +151,6 @@ class MODISExporter:
                 if f'{fname}.tif' in already_downloaded:
                     print(f'{fname}.tif already downloaded! Skipping')
                     continue
-
             file_region = region.filterMetadata('StateFips', 'equals', int(state_id))
             file_region = ee.FeatureCollection(file_region).filterMetadata('CntyFips', 'equals', int(county_id))
             file_region = ee.Feature(file_region.first())

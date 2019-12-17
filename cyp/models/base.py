@@ -83,6 +83,11 @@ class ModelBase:
             years = hist['output_year']
             indices = hist['output_index']
 
+        images = images[0:1000,:,:,:]
+        locations = locations[0:1000,:]
+        yields = yields[0:1000]
+        years = years[0:1000]
+        indices = indices[0:1000,:]
         # to collect results
         years_list, run_numbers, rmse_list, me_list, times_list = [], [], [], [], []
         if self.gp is not None:
@@ -127,11 +132,16 @@ class ModelBase:
                 print('-----------')
 
         # save results to a csv file
-        data = {'year': years_list, 'run_number': run_numbers, 'time_idx': times_list,
-                'RMSE': rmse_list, 'ME': me_list}
+        data = {'year': years_list,
+                'run_number': run_numbers,
+                'time_idx': times_list,
+                'RMSE': rmse_list,
+                'ME': me_list}
+
         if self.gp is not None:
             data['RMSE_GP'] = rmse_gp_list
             data['ME_GP'] = me_gp_list
+
         results_df = pd.DataFrame(data=data)
         results_df.to_csv(self.savedir / f'{str(datetime.now())}.csv', index=False)
 
@@ -236,18 +246,15 @@ class ModelBase:
             running_train_scores = defaultdict(list)
 
             for train_x, train_y in tqdm(train_dataloader):
+
                 optimizer.zero_grad()
                 pred_y = self.model(train_x)
+                loss, running_train_scores = l1_l2_loss(pred_y, train_y, l1_weight, running_train_scores)
 
-                loss, running_train_scores = l1_l2_loss(pred_y, train_y, l1_weight,
-                                                        running_train_scores)
                 loss.backward()
                 optimizer.step()
-
                 train_scores['loss'].append(loss.item())
-
                 step_number += 1
-
                 if step_number in [4000, 20000]:
                     for param_group in optimizer.param_groups:
                         param_group['lr'] /= 10
@@ -261,10 +268,7 @@ class ModelBase:
             with torch.no_grad():
                 for val_x, val_y, in tqdm(val_dataloader):
                     val_pred_y = self.model(val_x)
-
-                    val_loss, running_val_scores = l1_l2_loss(val_pred_y, val_y, l1_weight,
-                                                              running_val_scores)
-
+                    val_loss, running_val_scores = l1_l2_loss(val_pred_y, val_y, l1_weight, running_val_scores)
                     val_scores['loss'].append(val_loss.item())
 
             val_output_strings = []
@@ -277,8 +281,8 @@ class ModelBase:
             epoch_val_loss = np.array(running_val_scores['loss']).mean()
 
             if epoch_val_loss < min_loss:
-                best_state = self.model.state_dict()
-                min_loss = epoch_val_loss
+                best_state  = self.model.state_dict()
+                min_loss    = epoch_val_loss
 
                 if patience is not None:
                     epochs_without_improvement = 0
@@ -317,8 +321,7 @@ class ModelBase:
         self.model.eval()
         with torch.no_grad():
             for train_im, train_yield, train_loc, train_idx, train_year in tqdm(train_dataloader):
-                model_output = self.model(train_im,
-                                          return_last_dense=True if (self.gp is not None) else False)
+                model_output = self.model(train_im, return_last_dense=True if (self.gp is not None) else False)
                 if self.gp is not None:
                     pred, feat = model_output
                     if feat.device != 'cpu':
@@ -333,8 +336,7 @@ class ModelBase:
                 results['train_years'].extend(train_year.tolist())
 
             for test_im, test_yield, test_loc, test_idx, test_year in tqdm(test_dataloader):
-                model_output = self.model(test_im,
-                                          return_last_dense=True if (self.gp is not None) else False)
+                model_output = self.model(test_im, return_last_dense=True if (self.gp is not None) else False)
                 if self.gp is not None:
                     pred, feat = model_output
                     if feat.device != 'cpu':

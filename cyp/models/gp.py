@@ -57,11 +57,9 @@ class GaussianProcess:
         K_inv = np.linalg.inv(kernel[0: n_train, 0: n_train])
 
         # The definition of beta comes from equation 2.41 in Rasmussen (2006)
-        beta = np.linalg.inv(B_inv + H_train.T.dot(K_inv).dot(H_train)).dot(
-            H_train.T.dot(K_inv).dot(Y_train) + B_inv.dot(b))
+        beta = np.linalg.inv(B_inv + H_train.T.dot(K_inv).dot(H_train)).dot(H_train.T.dot(K_inv).dot(Y_train) + B_inv.dot(b))
 
         # We take the mean of g(X*) as our prediction, also from equation 2.41
-        pred = H_test.dot(beta) + \
-               kernel[n_train:, :n_train].dot(K_inv).dot(Y_train - H_train.dot(beta))
+        pred = H_test.dot(beta) +  kernel[n_train:, :n_train].dot(K_inv).dot(Y_train - H_train.dot(beta))
 
         return pred

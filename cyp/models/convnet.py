@@ -80,8 +80,10 @@ class ConvNet(nn.Module):
         super().__init__()
 
         # values taken from the paper
-        in_out_channels_list = [in_channels, 128, 256, 256, 512, 512, 512]
-        stride_list = [None, 1, 2, 1, 2, 1, 2]
+        #in_out_channels_list = [in_channels, 128, 256, 256, 512, 512, 512]
+        #stride_list = [None, 1, 2, 1, 2, 1, 2]
+        in_out_channels_list = [in_channels, 128, 128, 256, 256, 512, 512, 1024]
+        stride_list = [None, 1, 2, 1, 2, 1, 2, 1]
 
         # Figure out the size of the final flattened conv layer, which
         # is dependent on the input size
