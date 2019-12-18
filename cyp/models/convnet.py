@@ -31,7 +31,7 @@ class ConvModel(ModelBase):
         the CPU
     """
 
-    def __init__(self, in_channels=9, dropout=0.5, dense_features=None, time=32,
+    def __init__(self, in_channels=9, dropout=0.5, dense_features=None, time=64,
                  savedir=Path('data/models'), use_gp=True, sigma=1, r_loc=0.5, r_year=1.5,
                  sigma_e=0.01, sigma_b=0.01,
                  device=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
@@ -76,7 +76,7 @@ class ConvNet(nn.Module):
     For a description of the parameters, see the ConvModel class.
     Only handles strides of 1 and 2
     """
-    def __init__(self, in_channels=9, dropout=0.5, dense_features=None, time=32):
+    def __init__(self, in_channels=9, dropout=0.5, dense_features=None, time=64):#time=32):
         super().__init__()
 
         # values taken from the paper
@@ -94,9 +94,10 @@ class ConvNet(nn.Module):
             time /= 2
 
         if dense_features is None:
-            dense_features = [2048, 1]
-        dense_features.insert(0, int(in_out_channels_list[-1] * time * 4))
-
+            #dense_features = [2048, 1]
+            dense_features = [8192, 1]
+        #dense_features.insert(0, int(in_out_channels_list[-1] * time * 4))
+        dense_features.insert(0, int(in_out_channels_list[-1] * time * 4)
         assert len(stride_list) == len(in_out_channels_list), \
             "Stride list and out channels list must be the same length!"
 

@@ -47,7 +47,7 @@ class RunTask:
                 temperature_path='data/crop_yield-data_temperature',
                 image_path='data/crop_yield-data_image', yield_data_path='data/yield_data.csv',
                 cleaned_data_path='data/img_output', multiprocessing=True, processes=4, parallelism=6,
-                delete_when_done=True, num_years=14):
+                delete_when_done=False, num_years=14):
         """
         Preprocess the data
 
@@ -112,7 +112,7 @@ class RunTask:
         county_data_path = Path(county_data_path)
         print(cleaned_data_path, yield_data_path, county_data_path)
         engineer = Engineer(cleaned_data_path, yield_data_path, county_data_path)
-        engineer.process(num_bands=9, generate='histogram', num_bins=num_bins, max_bin_val=max_bin_val,
+        engineer.process(num_bands=9, generate='raw_img', num_bins=num_bins, max_bin_val=max_bin_val,
                          channels_first=True)
 
     @staticmethod
@@ -185,6 +185,7 @@ class RunTask:
         model = ConvModel(in_channels=9, dropout=dropout, dense_features=dense_features,
                           savedir=savedir, use_gp=use_gp, sigma=sigma, r_loc=r_loc,
                           r_year=r_year, sigma_e=sigma_e, sigma_b=sigma_b, device=device)
+
         model.run(histogram_path, times, pred_years, num_runs, train_steps, batch_size,
                   starter_learning_rate, weight_decay, l1_weight, patience)
 
