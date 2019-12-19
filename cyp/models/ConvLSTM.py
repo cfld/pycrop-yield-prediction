@@ -2,7 +2,63 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch
 import torch.nn.functional as F
+from pathlib import Path
 
+from .baseConvLSTM import ModelBase
+
+
+
+class ConvLSTMModel(ModelBase):
+    """
+    A PyTorch implementation of ConvLSTM cell in framework for crop_yeild paper
+
+    Parameters
+    ----------
+    in_channels: int, default=9
+        Number of channels in the input data. Default taken from the number of bands in the
+        MOD09A1 + the number of bands in the MYD11A2 datasets
+    num_bins: int, default=32
+        Number of bins in the histogram
+    hidden_size: int, default=128
+        The size of the hidden state. Default taken from the original repository
+    rnn_dropout: float, default=0.75
+        Default taken from the original paper. Note that this dropout is applied to the
+        hidden state after each timestep, not after each layer (since there is only one layer)
+    dense_features: list, or None, default=None.
+        output feature size of the Linear layers. If None, default values will be taken from the paper.
+        The length of the list defines how many linear layers are used.
+    savedir: pathlib Path, default=Path('data/models')
+        The directory into which the models should be saved.
+    device: torch.device
+        Device to run model on. By default, checks for a GPU. If none exists, uses
+        the CPU
+    """
+
+    def __init__(self, in_channels=9, pix=64, hidden_size=128, rnn_dropout=0.75,
+                 dense_features=None, savedir=Path('data/models'), r_loc=0.5, r_year=1.5,
+                 device=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
+
+        model = ConvLSTM(height         = pix,
+                         width          = pix,
+                         input_dim      = in_channels,
+                         hidden_dim     = [16, 16, 16, 1],
+                         kernel_size    = (3, 3),
+                         num_layers     = 4,
+                         batch_first    = True,
+                         bias           = True,
+                         return_all_layers=False)
+
+        if dense_features is None:
+            num_dense_layers = 2
+        else:
+            num_dense_layers = len(dense_features)
+        model_weight = f'dense_layers.{num_dense_layers - 1}.weight'
+        model_bias = f'dense_layers.{num_dense_layers - 1}.bias'
+
+        super().__init__(model, model_weight, model_bias, 'rnn', savedir, r_loc, r_year, device)
+
+    def reinitialize_model(self, time=None):
+        self.model.initialize_weights()
 
 class ConvLSTMCell(nn.Module):
 
@@ -143,6 +199,7 @@ class ConvLSTM(nn.Module):
         layer_output = layer_output_list[-1]
         if not self.batch_first:
             layer_output = layer_output.permute(1, 0, 2, 3, 4)
+
 
         return layer_output, last_state_list
 
