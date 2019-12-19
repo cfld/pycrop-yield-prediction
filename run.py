@@ -367,10 +367,9 @@ class RunTask:
             the CPU
 
         """
-        histogram_path = Path(cleaned_data_path) / 'histogram_all_full.npz'
+        histogram_path = Path(cleaned_data_path) / 'histogram_all_raw_img.npz'
         model = ConvLSTMModel(in_channels=9, pix=pix, hidden_size=hidden_size, rnn_dropout=0.75,
-                              save_dir=savedir,
-                              r_loc=r_loc, r_year=r_year, device=device)
+                              savedir=savedir, r_loc=r_loc, r_year=r_year, device=device)
 
 
 

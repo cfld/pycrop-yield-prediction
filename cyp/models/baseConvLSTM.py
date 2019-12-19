@@ -77,15 +77,8 @@ class ModelBase:
             years = hist['output_year']
             indices = hist['output_index']
 
-        #images = images[0:1000,:,:,:]
-        #locations = locations[0:1000,:]
-        #yields = yields[0:1000]
-        #years = years[0:1000]
-        #indices = indices[0:1000,:]
         # to collect results
         years_list, run_numbers, rmse_list, me_list, times_list = [], [], [], [], []
-        if self.gp is not None:
-            rmse_gp_list, me_gp_list = [], []
 
         if pred_years is None:
             pred_years = range(2009, 2016)
@@ -114,13 +107,7 @@ class ModelBase:
                     years_list.append(pred_year)
                     run_numbers.append(run_number)
                     times_list.append(time)
-
-                    if self.gp is not None:
-                        rmse, me, rmse_gp, me_gp = results
-                        rmse_gp_list.append(rmse_gp)
-                        me_gp_list.append(me_gp)
-                    else:
-                        rmse, me = results
+                    rmse, me = results
                     rmse_list.append(rmse)
                     me_list.append(me)
                 print('-----------')
@@ -131,10 +118,6 @@ class ModelBase:
                 'time_idx': times_list,
                 'RMSE': rmse_list,
                 'ME': me_list}
-
-        if self.gp is not None:
-            data['RMSE_GP'] = rmse_gp_list
-            data['ME_GP'] = me_gp_list
 
         results_df = pd.DataFrame(data=data)
         results_df.to_csv(self.savedir / f'{str(datetime.now())}.csv', index=False)
@@ -149,7 +132,7 @@ class ModelBase:
 
         # reinitialize the model, since self.model may be trained multiple
         # times in one call to run()
-        self.reinitialize_model(time=time)
+        #self.reinitialize_model(time=time)
 
         train_scores, val_scores = self._train(train_data.images, train_data.yields,
                                                train_steps, batch_size,
@@ -393,7 +376,9 @@ class ModelBase:
 
         A little awkward, since transpositions are necessary to make array broadcasting work
         """
-        mean = np.mean(train_images, axis=(0, 2, 3))
+        mean            = np.mean(train_images, axis=(0, 3, 4))
+        train_images    = train_images - mean
+        val_images      = val_images - mean
 
         train_images = (train_images.transpose(0, 2, 3, 1) - mean).transpose(0, 3, 1, 2)
         val_images = (val_images.transpose(0, 2, 3, 1) - mean).transpose(0, 3, 1, 2)
@@ -420,5 +405,5 @@ class ModelBase:
             return rmse, me, rmse_gp, me_gp
         return rmse, me
 
-    def reinitialize_model(self, time=None):
-        raise NotImplementedError
+    #def reinitialize_model(self, time=None):
+    #    raise NotImplementedError
